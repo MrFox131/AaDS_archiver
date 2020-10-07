@@ -22,7 +22,7 @@ struct node haffman_tree_builder(FILE *in){
         freq[i]=0;
     }
     while(!feof(in)){
-        temp = getc(in);
+        temp = fgetc(in);
         freq[temp]++;
     }
     for(int i=0; i<256; i++){
@@ -37,16 +37,19 @@ struct node haffman_tree_builder(FILE *in){
         }
     }
     qsort(sorting_tree, n, sizeof(struct node*), comparator);
+    int k = n;
     n--;
     while(n>0){
         struct node temp;
         temp.left=sorting_tree[n-1];
         temp.right=sorting_tree[n];
-        temp.freq = (*(sorting_tree[n])).freq+(*(sorting_tree[n-1])).freq;
+        temp.freq = (*(temp.left)).freq+(*(temp.right)).freq;
         temp.is_letter=0;
-        sorting_tree[n-1] = &temp;
+        tree[k]=temp;
+        sorting_tree[n-1] = &tree[k];
+        k++;
         n--;
-        qsort(tree, n, sizeof(struct node), comparator);
+        qsort(sorting_tree, n+1, sizeof(struct node*), comparator);
     }
     return *sorting_tree[0];
 }   
