@@ -13,7 +13,7 @@ int comparator(const void *a1, const void *b1 ){
     return b.freq-a.freq;
 }
 
-struct node haffman_tree_builder(FILE *in){
+struct node* haffman_tree_builder(FILE *in){
     int freq[256], n=0;
     unsigned char temp;
     struct node *tree = calloc(1024, sizeof(struct node));
@@ -55,5 +55,5 @@ struct node haffman_tree_builder(FILE *in){
         qsort(sorting_tree, n+1, sizeof(struct node*), comparator);
     }
     tree = ( struct node *)realloc(tree, k*sizeof(struct node));
-    return *sorting_tree[0];
+    return sorting_tree[0];
 }   

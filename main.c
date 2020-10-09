@@ -7,6 +7,6 @@
 int main(){
     FILE *in, *out;
     in = fopen("input.txt", "r");
-    struct node noda = haffman_tree_builder(in);
+    struct node* noda = haffman_tree_builder(in);
     return 0;
 }
