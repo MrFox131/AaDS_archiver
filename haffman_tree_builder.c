@@ -4,7 +4,7 @@
 struct node
 {
     int is_letter, freq;
-    char letter;
+    unsigned char letter;
     struct node *left, *right;
 };
 
@@ -15,7 +15,7 @@ int comparator(const void *a1, const void *b1 ){
 
 struct node haffman_tree_builder(FILE *in){
     int freq[256], n=0;
-    char temp;
+    unsigned char temp;
     struct node *tree = calloc(1024, sizeof(struct node));
     struct node **sorting_tree = calloc(1024, sizeof(struct node*));
     for(int i=0; i<256; i++){
@@ -38,6 +38,7 @@ struct node haffman_tree_builder(FILE *in){
     }
     qsort(sorting_tree, n, sizeof(struct node*), comparator);
     int k = n;
+    sorting_tree = ( struct node **)realloc(sorting_tree, n*sizeof(struct node*));
     n--;
     while(n>0){
         struct node temp;
@@ -51,5 +52,6 @@ struct node haffman_tree_builder(FILE *in){
         n--;
         qsort(sorting_tree, n+1, sizeof(struct node*), comparator);
     }
+    tree = ( struct node *)realloc(tree, k*sizeof(struct node));
     return *sorting_tree[0];
 }   
