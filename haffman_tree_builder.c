@@ -23,7 +23,9 @@ struct node haffman_tree_builder(FILE *in){
     }
     while(!feof(in)){
         temp = fgetc(in);
-        freq[temp]++;
+        if(temp!=255){
+            freq[temp]++;
+        }
     }
     for(int i=0; i<256; i++){
         if (freq[i]){
