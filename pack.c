@@ -2,11 +2,11 @@
 
 int pack(char* name, FILE *in, FILE *out){
     fprintf(out, "%s\n", name); 
-    fseek(in, 0, SEEK_END);//go to end of the file
+    fseek(in, 0, SEEK_END);
     do {
         fseek(in, -1, SEEK_CUR);
         fputc(fgetc(in), out);
         fseek(in, -1, SEEK_CUR);
-    } while(ftell(in)!=0); // reads a byte and moves backward while it can
+    } while(ftell(in)!=0);
     return 0;
 }

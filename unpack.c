@@ -9,14 +9,14 @@ int unpack(FILE *in, char path[512]){
     strcat(path, name);
     FILE *out = fopen(path, "w");
     if (out == NULL) {
-        return -1; //outer file not opened
+        return -1;
     }
     int pos = ftell(in); // initial position in the stream, where reversed file begins
-    fseek(in, 0, SEEK_END); // set position to the end of the file
-    do { //minimum 1 bite must be read
-        fseek(in, -1, SEEK_CUR);//moving one byte lefter
-        fputc(fgetc(in), out);//reading byte
-        fseek(in, -1, SEEK_CUR);//moveing one byte lefter
-    } while(ftell(in)!=pos); // while current position is not initial position
+    fseek(in, 0, SEEK_END);
+    do { 
+        fseek(in, -1, SEEK_CUR);
+        fputc(fgetc(in), out);
+        fseek(in, -1, SEEK_CUR);
+    } while(ftell(in)!=pos);
     return 0;
 }
