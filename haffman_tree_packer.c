@@ -7,7 +7,9 @@ struct node
     char is_letter;
     int freq;
     unsigned char letter;
-    struct node *left, *right;
+    struct node *left, *right, *parent;
+    int suffix_code;
+    char *symbol_code;
 };
 #endif
 

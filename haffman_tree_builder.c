@@ -6,7 +6,9 @@ struct node
     char is_letter;
     int freq;
     unsigned char letter;
-    struct node *left, *right;
+    struct node *left, *right, *parent;
+    int suffix_code;
+    char *symbol_code;
 };
 
 int comparator(const void *a1, const void *b1 ){
@@ -45,12 +47,18 @@ struct node* haffman_tree_builder(FILE *in){
     n--;
     while(n>0){
         struct node temp;
+        temp.symbol_code = NULL;
+        temp.parent=NULL;
         temp.letter=0;
         temp.left=sorting_tree[n-1];
+        sorting_tree[n-1]->suffix_code=0;
         temp.right=sorting_tree[n];
+        sorting_tree[n]->suffix_code=1;
         temp.freq = (*(temp.left)).freq+(*(temp.right)).freq;
         temp.is_letter=0;
         tree[k]=temp;
+        sorting_tree[n]->parent = &tree[k];
+        sorting_tree[n-1]->parent = &tree[k];
         sorting_tree[n-1] = &tree[k];
         k++;
         n--;
