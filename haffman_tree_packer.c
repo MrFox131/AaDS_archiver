@@ -26,8 +26,8 @@ void haffman_tree_packer(struct node* tree, int *real_length, int *buffer_length
         buffer[*real_length+1] = (*tree).letter;
         *real_length+=2;
         if (!(*tree).is_letter){
-            haffman_tree_packer((*tree).left, real_length, buffer_length, buffer);
-            haffman_tree_packer((*tree).right, real_length, buffer_length, buffer);
+            haffman_tree_packer(tree->left, real_length, buffer_length, buffer);
+            haffman_tree_packer(tree->right, real_length, buffer_length, buffer);
         }
     }
     if (tree->parent==NULL){

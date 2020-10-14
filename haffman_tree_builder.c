@@ -77,7 +77,7 @@ struct node* haffman_tree_builder(FILE *in){
         sorting_tree[n-1]->suffix_code=1;
         temp.right=sorting_tree[n];
         sorting_tree[n]->suffix_code=2;
-        temp.freq = (*(temp.left)).freq+(*(temp.right)).freq;
+        temp.freq = temp.left->freq+temp.right->freq;
         temp.is_letter=0;
         tree[k]=temp;
         sorting_tree[n]->parent = &tree[k];
