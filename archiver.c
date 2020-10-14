@@ -4,6 +4,7 @@
 #include "haffman_tree_packer.h" 
 #include "stack.h" 
 
+//generates code for all symbols in tree, memorizing codes not only for letters, but for non-leaf nodes too
 int codes_generator(struct node* root, unsigned char *codes[256], int *codes_length){
     Stack* stack = create_stack();
     push(stack, root->left);
@@ -12,7 +13,7 @@ int codes_generator(struct node* root, unsigned char *codes[256], int *codes_len
         root = pop(stack);
         if (root->is_letter){
             find_symbol_code(root);
-            codes[root->letter] = root->symbol_code;
+            codes[root->letter] = root->last_code_symbol;
             codes_length[root->letter]=root->depth;
             continue;
         }
@@ -38,20 +39,21 @@ int haffman_archiver(FILE *in, FILE* out, int packed_tree_length, unsigned char 
     for (int i=0; i<packed_tree_length; i++){
         fputc(packed_tree[i], out);
     }
-    while(!feof(in)){
+    fseek(in, 0, SEEK_END);
+    int end = ftell(in);
+    fseek(in, 0, SEEK_SET);
+    while(ftell(in)!=end){
         coding = fgetc(in);
-        if(coding !=255){
-            for(int i=0; i<codes_length[coding]; i++){
-                if(filled_by==8) {
-                    filled_by = 0;
-                    fputc(coded, out);
-                    coded = 0;
-                    cnt++;
-                }
-                coded = coded << 1;
-                coded = coded|(codes[coding][i] >> 1);
-                filled_by++; 
+        for(int i=0; i<codes_length[coding]; i++){
+            if(filled_by==8) {
+                filled_by = 0;
+                fputc(coded, out);
+                coded = 0;
+                cnt++;
             }
+            coded = coded << 1;
+            coded = coded|(codes[coding][i] >> 1);
+            filled_by++; 
         }
     }
     if (filled_by!=0){

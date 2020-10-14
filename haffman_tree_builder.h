@@ -8,8 +8,10 @@ struct node
     unsigned char letter;
     struct node *left, *right, *parent;
     int suffix_code;
-    char *symbol_code, depth;
+    char *last_code_symbol, depth;
 };
 
 struct node* haffman_tree_builder(FILE *in);
+void find_symbol_code(struct node *root);
+
 #endif

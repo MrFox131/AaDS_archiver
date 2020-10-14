@@ -9,12 +9,11 @@ struct node
     unsigned char letter;
     struct node *left, *right, *parent;
     int suffix_code;
-    char *symbol_code, depth;
+    char *last_code_symbol, depth;
 };
 #endif
 
 void haffman_tree_packer(struct node* tree, int *real_length, int *buffer_length, unsigned char* buffer){
-    int initial_real_length = *real_length;
     if (*buffer_length-*real_length<3){
         *buffer_length+=1024;
         buffer = (char*)realloc(buffer, *buffer_length);
@@ -31,7 +30,7 @@ void haffman_tree_packer(struct node* tree, int *real_length, int *buffer_length
             haffman_tree_packer((*tree).right, real_length, buffer_length, buffer);
         }
     }
-    if (initial_real_length==0){
-        buffer = realloc(buffer, (*real_length)*sizeof(char));
+    if (tree->parent==NULL){
+        buffer = realloc(buffer, *real_length * sizeof(char));
     }
 }
