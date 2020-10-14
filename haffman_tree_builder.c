@@ -2,16 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct node
-{
-    char is_letter;
-    int freq;
-    unsigned char letter;
-    struct node *left, *right, *parent;
-    int last_symbol_code;
-    char *symbol_code, depth;
-};
-
 int comparator(const void *a1, const void *b1 ){
     struct node a = **(struct node**)a1, b = **(struct node**)b1;
     return b.freq-a.freq;
@@ -34,8 +24,8 @@ void find_symbol_code(struct node *root){
 struct node* haffman_tree_builder(FILE *in){
     int freq[256], n=0;
     unsigned char temp;
-    struct node *tree = (struct node*)calloc(1024, sizeof(struct node));
-    struct node **sorting_tree = (struct node**)calloc(1024, sizeof(struct node*));
+    struct node *tree = (struct node*)calloc(1024, sizeof(struct node)); //place for tree nodes
+    struct node **sorting_tree = (struct node**)calloc(1024, sizeof(struct node*)); //pointers array for nodes sorting
     for(int i=0; i<256; i++){
         freq[i]=0;
     }

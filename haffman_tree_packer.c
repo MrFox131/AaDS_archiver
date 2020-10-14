@@ -2,18 +2,6 @@
 #include <string.h>
 #include "haffman_tree_builder.h"
 
-#ifndef HAFFMAN_TREE_BUILDER_H
-struct node
-{
-    char is_letter;
-    int freq;
-    unsigned char letter;
-    struct node *left, *right, *parent;
-    int last_symbol_code;
-    char *symbol_code, depth;
-};
-#endif
-
 void haffman_tree_packer(struct node* tree, int *real_length, int *buffer_length, unsigned char* buffer){
     if (*buffer_length-*real_length<3){
         *buffer_length+=1024;
