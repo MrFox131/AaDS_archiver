@@ -8,12 +8,26 @@ struct node
     unsigned char letter;
     struct node *left, *right, *parent;
     int suffix_code;
-    char *symbol_code;
+    char *symbol_code, depth;
 };
 
 int comparator(const void *a1, const void *b1 ){
     struct node a = **(struct node**)a1, b = **(struct node**)b1;
     return b.freq-a.freq;
+}
+
+void find_symbol_code(struct node *root){
+    root->symbol_code = calloc(1024, sizeof(char));
+    if (root->parent==NULL){
+        root->depth=0;
+        return;
+    }
+    if(root->parent->symbol_code==NULL){
+        find_symbol_code(root->parent);
+    }
+    root->symbol_code = strncpy(root->symbol_code, root->parent->symbol_code, root->parent->depth);
+    root->symbol_code[root->parent->depth] = root->suffix_code;
+    root->depth = root->parent->depth+1;
 }
 
 struct node* haffman_tree_builder(FILE *in){
@@ -24,12 +38,20 @@ struct node* haffman_tree_builder(FILE *in){
     for(int i=0; i<256; i++){
         freq[i]=0;
     }
-    while(!feof(in)){
+    fseek(in, 0, SEEK_END);
+    int end = ftell(in);
+    fseek(in, 0, SEEK_SET);
+    while(ftell(in)!=end){
         temp = fgetc(in);
         if(temp!=255){
             freq[temp]++;
         }
     }
+    #ifdef _DEBUG
+        for (int i=0; i<256; i++){
+            printf("%d ", freq[i]);
+        }
+    #endif
     for(int i=0; i<256; i++){
         if (freq[i]){
             tree[n].is_letter = 1;
@@ -51,9 +73,9 @@ struct node* haffman_tree_builder(FILE *in){
         temp.parent=NULL;
         temp.letter=0;
         temp.left=sorting_tree[n-1];
-        sorting_tree[n-1]->suffix_code=0;
+        sorting_tree[n-1]->suffix_code=1;
         temp.right=sorting_tree[n];
-        sorting_tree[n]->suffix_code=1;
+        sorting_tree[n]->suffix_code=2;
         temp.freq = (*(temp.left)).freq+(*(temp.right)).freq;
         temp.is_letter=0;
         tree[k]=temp;

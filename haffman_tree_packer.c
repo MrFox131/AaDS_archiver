@@ -9,7 +9,7 @@ struct node
     unsigned char letter;
     struct node *left, *right, *parent;
     int suffix_code;
-    char *symbol_code;
+    char *symbol_code, depth;
 };
 #endif
 
