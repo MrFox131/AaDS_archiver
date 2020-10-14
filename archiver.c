@@ -13,7 +13,7 @@ int codes_generator(struct node* root, unsigned char *codes[256], int *codes_len
         root = pop(stack);
         if (root->is_letter){
             find_symbol_code(root);
-            codes[root->letter] = root->last_code_symbol;
+            codes[root->letter] = root->symbol_code;
             codes_length[root->letter]=root->depth;
             continue;
         }

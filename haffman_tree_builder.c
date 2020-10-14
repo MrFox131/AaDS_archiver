@@ -8,7 +8,7 @@ struct node
     int freq;
     unsigned char letter;
     struct node *left, *right, *parent;
-    int suffix_code;
+    int last_symbol_code;
     char *symbol_code, depth;
 };
 
@@ -27,7 +27,7 @@ void find_symbol_code(struct node *root){
         find_symbol_code(root->parent);
     }
     root->symbol_code = strncpy(root->symbol_code, root->parent->symbol_code, root->parent->depth);
-    root->symbol_code[root->parent->depth] = root->suffix_code;
+    root->symbol_code[root->parent->depth] = root->last_symbol_code;
     root->depth = root->parent->depth+1;
 }
 
@@ -74,9 +74,9 @@ struct node* haffman_tree_builder(FILE *in){
         temp.parent=NULL;
         temp.letter=0;
         temp.left=sorting_tree[n-1];
-        sorting_tree[n-1]->suffix_code=1;
+        sorting_tree[n-1]->last_symbol_code=1;
         temp.right=sorting_tree[n];
-        sorting_tree[n]->suffix_code=2;
+        sorting_tree[n]->last_symbol_code=2;
         temp.freq = temp.left->freq+temp.right->freq;
         temp.is_letter=0;
         tree[k]=temp;
