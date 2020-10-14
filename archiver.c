@@ -24,24 +24,22 @@ int codes_generator(struct node* root, unsigned char *codes[256], int *codes_len
 }
 
 int haffman_archiver(FILE *in, FILE* out, int packed_tree_length, unsigned char *packed_tree, struct node* root){
-    unsigned char *codes[256];
-    unsigned char coded, coding;
-    unsigned int mask = 255;
+    unsigned char *codes[256], coded, coding,  mask = 255, filled_by = 0;
     int *codes_length = calloc(256, sizeof(int)), cnt=0;
-    unsigned char filled_by=0;
     codes_generator(root, codes, codes_length);
     fseek(in, 0, SEEK_SET);
-    fputc(mask&(packed_tree_length>>24), out);
-    fputc(mask&(packed_tree_length>>26), out);
-    fputc(mask&(packed_tree_length>>8), out);
-    fputc(mask&(packed_tree_length), out);
+    for(int i = 24; i>=0; i-=8){
+        fputc(mask&(packed_tree_length>>i), out);
+    }
     fseek(out, 4, SEEK_SET);
     for (int i=0; i<packed_tree_length; i++){
         fputc(packed_tree[i], out);
     }
+
     fseek(in, 0, SEEK_END);
     int end = ftell(in);
     fseek(in, 0, SEEK_SET);
+
     while(ftell(in)!=end){
         coding = fgetc(in);
         for(int i=0; i<codes_length[coding]; i++){
@@ -56,6 +54,7 @@ int haffman_archiver(FILE *in, FILE* out, int packed_tree_length, unsigned char 
             filled_by++; 
         }
     }
+    
     if (filled_by!=0){
         fputc(coded, out);
     }
