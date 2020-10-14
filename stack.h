@@ -2,7 +2,14 @@
 
 #ifndef STACK_H
 #define STACK_H
-#include "stack.c"
+
+typedef struct node* T;
+
+typedef struct Stack {
+    T *data;
+    size_t size;
+    size_t top;
+}Stack;
 
 Stack* create_stack();
 
