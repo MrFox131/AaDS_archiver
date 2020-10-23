@@ -18,6 +18,28 @@ int comparator(const void *a1, const void *b1 ){
     return b.freq-a.freq;
 }
 
+void frequency_counter(int *freq, FILE *in){
+    unsigned char temp;
+
+    for(int i=0; i<ALPHABET_SIZE; i++){
+        freq[i]=0;
+    }
+    fseek(in, 0, SEEK_END);
+    int end = ftell(in);
+    fseek(in, 0, SEEK_SET);
+
+    while(ftell(in)!=end){
+        temp = fgetc(in);
+        freq[temp]++;
+    }
+
+    #ifdef _DEBUG
+        for (int i=0; i<ALPHABET_SIZE; i++){
+            printf("%d ", freq[i]);
+        }
+    #endif
+}
+
 void find_symbol_code(struct node *root){
     root->symbol_code = calloc(1024, sizeof(char));
     if (root->parent==NULL){
@@ -38,21 +60,9 @@ struct node* haffman_tree_builder(FILE *in){ //TODO: вынесри в отде�
     unsigned char temp;
     struct node *tree = (struct node*)calloc(1024, sizeof(struct node)); //place for tree nodes
     struct node **sorting_tree = (struct node**)calloc(1024, sizeof(struct node*)); //pointers array for nodes sorting
-    for(int i=0; i<ALPHABET_SIZE; i++){
-        freq[i]=0;
-    }
-    fseek(in, 0, SEEK_END);
-    int end = ftell(in);
-    fseek(in, 0, SEEK_SET);
-    while(ftell(in)!=end){
-        temp = fgetc(in);
-        freq[temp]++;
-    }
-    #ifdef _DEBUG
-        for (int i=0; i<ALPHABET_SIZE; i++){
-            printf("%d ", freq[i]);
-        }
-    #endif
+    
+    frequency_counter(freq, in);
+
     for(int i=0; i<ALPHABET_SIZE; i++){
         if (freq[i]){
             tree[n].is_letter = 1;
