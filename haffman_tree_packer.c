@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "haffman_tree_builder.h"
 
 void haffman_tree_packer(struct node* tree, int *real_length, int *buffer_length, unsigned char* buffer){
