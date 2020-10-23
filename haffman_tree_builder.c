@@ -2,6 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+const int ALPHABET_SIZE = 256;
+
+struct node{
+    char is_letter;
+    int freq;
+    unsigned char letter;
+    struct node *left, *right, *parent;
+    int last_symbol_code;
+    char *symbol_code, depth;
+};
+
 int comparator(const void *a1, const void *b1 ){
     struct node a = **(struct node**)a1, b = **(struct node**)b1;
     return b.freq-a.freq;
@@ -19,14 +30,15 @@ void find_symbol_code(struct node *root){
     root->symbol_code = strncpy(root->symbol_code, root->parent->symbol_code, root->parent->depth);
     root->symbol_code[root->parent->depth] = root->last_symbol_code;
     root->depth = root->parent->depth+1;
+    root->symbol_code = (char*)realloc(root->symbol_code, sizeof(char)*root->depth);
 }
 
-struct node* haffman_tree_builder(FILE *in){
-    int freq[256], n=0;
+struct node* haffman_tree_builder(FILE *in){ //TODO: вынесри в отдельную функцию
+    int freq[ALPHABET_SIZE], n=0;
     unsigned char temp;
     struct node *tree = (struct node*)calloc(1024, sizeof(struct node)); //place for tree nodes
     struct node **sorting_tree = (struct node**)calloc(1024, sizeof(struct node*)); //pointers array for nodes sorting
-    for(int i=0; i<256; i++){
+    for(int i=0; i<ALPHABET_SIZE; i++){
         freq[i]=0;
     }
     fseek(in, 0, SEEK_END);
@@ -34,16 +46,14 @@ struct node* haffman_tree_builder(FILE *in){
     fseek(in, 0, SEEK_SET);
     while(ftell(in)!=end){
         temp = fgetc(in);
-        if(temp!=255){
-            freq[temp]++;
-        }
+        freq[temp]++;
     }
     #ifdef _DEBUG
-        for (int i=0; i<256; i++){
+        for (int i=0; i<ALPHABET_SIZE; i++){
             printf("%d ", freq[i]);
         }
     #endif
-    for(int i=0; i<256; i++){
+    for(int i=0; i<ALPHABET_SIZE; i++){
         if (freq[i]){
             tree[n].is_letter = 1;
             tree[n].letter=i;

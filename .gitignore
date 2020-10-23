@@ -3,3 +3,5 @@
 /.vscode
 /*.exe
 /main.c
+/check_file_existance.dll
+/check_file_existance.o
