@@ -4,8 +4,10 @@
 #include "haffman_tree_packer.h" 
 #include "stack.h" 
 
+typedef struct node Node;
+
 //generates code for all symbols in tree, memorizing codes not only for letters, but for non-leaf nodes too
-int codes_generator(struct node* root, unsigned char *codes[256], int *codes_length){
+int codes_generator(Node* root, unsigned char *codes[256], int *codes_length){
     Stack* stack = create_stack();
     push(stack, root->left);
     push(stack, root->right);
@@ -20,10 +22,9 @@ int codes_generator(struct node* root, unsigned char *codes[256], int *codes_len
         push(stack, root->left);
         push(stack, root->right);
     }
-
 }
 
-int haffman_archiver(FILE *in, FILE* out, int packed_tree_length, unsigned char *packed_tree, struct node* root){
+int haffman_archiver(FILE *in, FILE* out, int packed_tree_length, unsigned char *packed_tree, Node* root){
     unsigned char *codes[256], coded, coding,  mask = 255, filled_by = 0;
     int *codes_length = calloc(256, sizeof(int)), cnt=0;
     codes_generator(root, codes, codes_length);

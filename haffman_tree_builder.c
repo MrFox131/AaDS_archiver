@@ -4,14 +4,16 @@
 
 const int ALPHABET_SIZE = 256;
 
-struct node{
+typedef struct node{
     char is_letter;
     int freq;
     unsigned char letter;
     struct node *left, *right, *parent;
     int last_symbol_code;
     char *symbol_code, depth;
-};
+} Node;
+
+
 
 int comparator(const void *a1, const void *b1 ){
     struct node a = **(struct node**)a1, b = **(struct node**)b1;
@@ -55,7 +57,7 @@ void find_symbol_code(struct node *root){
     root->symbol_code = (char*)realloc(root->symbol_code, sizeof(char)*root->depth);
 }
 
-struct node* haffman_tree_builder(FILE *in){ //TODO: вынесри в отдельную функцию
+struct node* haffman_tree_builder(FILE *in){
     int freq[ALPHABET_SIZE], n=0;
     unsigned char temp;
     struct node *tree = (struct node*)calloc(1024, sizeof(struct node)); //place for tree nodes
