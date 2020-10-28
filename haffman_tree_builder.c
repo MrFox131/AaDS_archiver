@@ -66,6 +66,7 @@ void find_symbol_code(Node *root){
     root->depth = root->parent->depth+1;
 }
 
+//CAUTION! MEMORY ALLOCATED FOR RETURNING VALUE MUST BE FREED BY CALLER OF THE FUNCTION!
 Node* haffman_tree_builder(FILE *in){
     int freq[ALPHABET_SIZE], n=0;
     Node *tree = (Node*)calloc(1024, sizeof(Node)); //place for tree nodes
@@ -99,5 +100,7 @@ Node* haffman_tree_builder(FILE *in){
     tree = ( Node *)realloc(tree, k*sizeof(Node));
     sorting_tree[0]->depth=0;
     sorting_tree[0]->symbol_code = malloc( sizeof(char));
-    return sorting_tree[0];
+    Node* root = sorting_tree[0];
+    free(sorting_tree);
+    return root;
 }   
