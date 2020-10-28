@@ -8,7 +8,7 @@ typedef struct node{
     char is_letter;
     int freq;
     unsigned char letter;
-    Node *left, *right, *parent;
+    struct node *left, *right, *parent;
     int last_symbol_code;
     char *symbol_code, depth;
 } Node;
@@ -20,11 +20,7 @@ Node new_node(int is_letter, int freq, unsigned char letter, Node* left_child, N
     if(is_letter)
         node.freq = freq;
     else {
-<<<<<<< HEAD
         node.freq = (left_child==NULL?0:left_child->freq)+(right_child==NULL?0:right_child->freq);
-=======
-        node.freq = left_child==NULL?0:left_child->freq+right_child==NULL?0:right_child->freq;
->>>>>>> 85108de9f84525dc1e36275112fcb29887989a9f
     }
     node.left = left_child;
     node.right = right_child;
@@ -61,26 +57,13 @@ void frequency_counter(int *freq, FILE *in){
 }
 
 void find_symbol_code(Node *root){
-<<<<<<< HEAD
-    //root->symbol_code = (char*)calloc(1024, sizeof(char));
-    root->symbol_code = (char*)malloc(256*sizeof(char));
+    root->symbol_code = (char*)malloc(root->parent->depth+1);
     if(root->symbol_code==NULL){
         printf("Memory error: not allocated memory for root->symbol_code");
-    }
-=======
-    root->symbol_code = calloc(1024, sizeof(char));
->>>>>>> 85108de9f84525dc1e36275112fcb29887989a9f
-    if (root->parent==NULL){
-        root->depth=0;
-        return;
-    }
-    if(root->parent->symbol_code==NULL){
-        find_symbol_code(root->parent);
     }
     root->symbol_code = strncpy(root->symbol_code, root->parent->symbol_code, root->parent->depth);
     root->symbol_code[root->parent->depth] = root->last_symbol_code;
     root->depth = root->parent->depth+1;
-    root->symbol_code = (char*)realloc(root->symbol_code, sizeof(char)*(root->depth));
 }
 
 Node* haffman_tree_builder(FILE *in){
@@ -113,10 +96,8 @@ Node* haffman_tree_builder(FILE *in){
         n--;
         qsort(sorting_tree, n+1, sizeof(Node*), comparator);
     }
-<<<<<<< HEAD
-    tree = ( Node *)realloc(tree, (k+1)*sizeof(Node));
-=======
     tree = ( Node *)realloc(tree, k*sizeof(Node));
->>>>>>> 85108de9f84525dc1e36275112fcb29887989a9f
+    sorting_tree[0]->depth=0;
+    sorting_tree[0]->symbol_code = malloc( sizeof(char));
     return sorting_tree[0];
 }   
