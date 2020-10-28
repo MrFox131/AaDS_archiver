@@ -21,4 +21,6 @@ void push(Stack* stack, T elem);
 
 int is_empty(Stack* stack);
 
+int stack_destructor(Stack* stack);
+
 #endif

@@ -22,6 +22,7 @@ int codes_generator(Node* root, unsigned char *codes[256], int *codes_length){
         push(stack, root->left);
         push(stack, root->right);
     }
+    stack_destructor(stack);
 }
 
 int haffman_archiver(FILE *in, FILE* out, int packed_tree_length, unsigned char *packed_tree, Node* root){

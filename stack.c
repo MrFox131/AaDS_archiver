@@ -45,3 +45,8 @@ int is_empty(Stack* stack){
     }
     return 0;
 }
+
+void stack_destructor(Stack* stack){
+    free(stack->data);
+    free(stack);
+}
