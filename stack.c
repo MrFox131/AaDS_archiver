@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #define INIT_SIZE 20
 
@@ -20,6 +21,10 @@ Stack* create_stack(){
 
 void resize_stack(Stack* stack){
     stack->data=(T*)realloc(stack->data, (stack->size+INIT_SIZE)*sizeof(T));
+    stack->size+=INIT_SIZE;
+    if (stack->data==NULL){
+        printf("PANIC: memory was not reallocated. From resize_stack()");
+    }
 }
 
 T pop(Stack* stack){

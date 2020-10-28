@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include "haffman_tree_builder.h"
 
+typedef struct node Node;
+
 void haffman_tree_packer(struct node* tree, int *real_length, int *buffer_length, unsigned char* buffer){
     if (*buffer_length-*real_length<3){
         *buffer_length+=1024;
