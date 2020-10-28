@@ -13,8 +13,8 @@ int codes_generator(Node* root, unsigned char *codes[256], int *codes_length){
     push(stack, root->right);
     while (!is_empty(stack)){
         root = pop(stack);
+        find_symbol_code(root);
         if (root->is_letter){
-            find_symbol_code(root);
             codes[root->letter] = root->symbol_code;
             codes_length[root->letter]=root->depth;
             continue;
