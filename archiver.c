@@ -30,6 +30,7 @@ int haffman_archiver(FILE *in, FILE* out, int packed_tree_length, unsigned char 
     int *codes_length = calloc(256, sizeof(int)), cnt=0;
     codes_generator(root, codes, codes_length);
     fseek(in, 0, SEEK_SET);
+    packed_tree_length+=4;
     for(int i = 24; i>=0; i-=8){
         fputc(mask&(packed_tree_length>>i), out);
     }
