@@ -7,9 +7,6 @@ typedef struct  restored_node{
 } RestoredNode;
 
 RestoredNode* haffman_tree_restoration(FILE *in){
-    if(!ftell(in)){
-        fseek(in, 4, SEEK_SET);
-    }
     if(!getc(in)){
         return NULL;
     }

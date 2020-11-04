@@ -32,12 +32,10 @@ int haffman_archivate(FILE *in, FILE* out, int packed_tree_length, unsigned char
     codes_generator(haffman_prefix_codes_tree, symbol_codes, codes_length);
 
     fseek(in, 0, SEEK_SET); 
-    packed_tree_length+=4;
-    for(int i = 24; i>=0; i-=8){
-        fputc(mask&(packed_tree_length>>i), out);
+    for (int i=0; i<packed_tree_length; i++){
+        fputc(packed_tree[i], out);
     }
-
-
+    
     fseek(in, 0, SEEK_END);
     int end = ftell(in);
     fseek(in, 0, SEEK_SET);
