@@ -8,6 +8,6 @@
 
 typedef struct node Node;
 int codes_generator(Node* root, unsigned char *codes[256], int *codes_length);
-int haffman_archiver(FILE *in, FILE* out, int packed_tree_length, unsigned char *packed_tree, Node* root);
+int haffman_archivate(FILE *in, FILE* out, int packed_tree_length, unsigned char *packed_tree, Node* root);
 
 #endif
