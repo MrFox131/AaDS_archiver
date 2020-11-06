@@ -6,3 +6,7 @@
 /check_file_existance.dll
 /check_file_existance.o
 /output_test
+/test.exe
+/get_directory_structure.dll
+/get_directory_structure.h
+/get_directory_structure.o
