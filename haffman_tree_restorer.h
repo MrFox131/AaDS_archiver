@@ -1,5 +1,5 @@
-#include<stdlib.h>
-#include<stdio.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #ifndef HAFFMAN_TREE_RESTORER_H
 #define HAFFMAN_TREE_RESTORER_H
