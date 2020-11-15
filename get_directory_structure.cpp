@@ -7,37 +7,69 @@
 
 using namespace std;
 
-extern "C" typedef struct directory {
+typedef struct directory {
+    char *base;
     char **files;
-    char **directories;
-    int dirs_count;
     int files_count;
     int files_buf_size;
-    int dirs_buf_size;
 } Directory;
 
 namespace fs = std::filesystem;
 
-extern "C" void get_directory_structure(char* name, Directory* dir, int (*add_new_directory)(Directory*, int, const char*), int (*add_new_file)(Directory*, int, const char*)){
+#define INITIAL_DIRECTORY_BUFFERS_SIZE 10
 
-    if(!(fs::exists(name))){
-        dir->files=NULL;
-        dir->directories = NULL;
-        return;
+extern "C" Directory* new_directory(){
+    Directory *dir = (Directory*)malloc(sizeof(Directory));
+    dir->files_buf_size = INITIAL_DIRECTORY_BUFFERS_SIZE;
+    dir->files_count = 0;
+    dir->files = (char**)calloc(INITIAL_DIRECTORY_BUFFERS_SIZE, sizeof(char*));
+    return dir;    
+}
+
+int add_new_file(struct directory *dir, const char* name){
+    if(dir->files_buf_size == dir->files_count){
+        dir->files = (char**)realloc(dir->files, (dir->files_buf_size+INITIAL_DIRECTORY_BUFFERS_SIZE)*sizeof(char**));
+        dir->files_buf_size+=INITIAL_DIRECTORY_BUFFERS_SIZE;
     }
-    auto status = fs::status(name);
+
+    dir->files[dir->files_count] = (char*)calloc(strlen(name)+1, sizeof(char));
+    strcpy(dir->files[dir->files_count], name);
+    dir->files_count++;
+    return 0;
+}
+
+extern "C" Directory* get_directory_structure(char* name){
+    auto path = fs::absolute(name).make_preferred();
+    auto dir = new_directory();
+    if(!(fs::exists(name))){
+        return NULL;
+    }
+    auto status = fs::status(path);
     if(status.type()==fs::file_type(2)){
-        for (auto &p: fs::directory_iterator(name)){
+        dir->base = (char*)calloc(strlen(path.string().c_str())+1, sizeof(char));   
+        strcpy(dir->base, path.string().c_str());
+        for (auto &p: fs::recursive_directory_iterator(path)){
             if(fs::status(p.path()).type()==fs::file_type(2)){
-                add_new_directory(dir, p.path().string().length(), p.path().string().c_str());
+                continue;
             } else {
-                add_new_file(dir, p.path().string().length(), p.path().string().c_str());
-                }
+                add_new_file(dir, p.path().string().c_str());
+            }
         }
     } else {
-        free(dir->directories);
-        add_new_file(dir, strlen(name), name);
+        auto base_path = fs::absolute(name).remove_filename().make_preferred();
+        dir->base = (char*)calloc(strlen(base_path.string().c_str())+1, sizeof(char));   
+        strcpy(dir->base, base_path.string().c_str());
+        add_new_file(dir, path.string().c_str());
     }
+    return dir;
+}
+
+extern "C" void destruct_dir(Directory* dir){
+    for(int i(0); i<dir->files_count; i++){
+        free(dir->files[i]);
+    }
+    free(dir->files);
+    free(dir);
 }
 
 #ifdef STANDALONE
