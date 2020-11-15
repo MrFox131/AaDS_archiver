@@ -8,5 +8,6 @@
 /output_test
 /test.exe
 /libget_directory_structure.dll
-/get_directory_structure.h
+/*.out
 /get_directory_structure.o
+/*.o
