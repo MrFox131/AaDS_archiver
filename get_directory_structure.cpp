@@ -3,7 +3,6 @@
 #include <string>
 #include <stdlib.h>
 #include <cstring>
-#include <vector>
 
 
 using namespace std;
@@ -75,13 +74,3 @@ extern "C" void destruct_dir(Directory* dir){
     free(dir->files);
     free(dir);
 }
-
-extern "C" int check_if_folder_type(char* name){
-    return int(fs::exists(name) && fs::status(name).type()==fs::file_type(2));
-}
-
-#ifdef STANDALONE
-int main(){
-    get_directory_structure(".vscode");
-}
-#endif
