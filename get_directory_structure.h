@@ -10,5 +10,6 @@ typedef struct directory {
 
 Directory* get_directory_structure(char* name);
 void destruct_dir(Directory* dir);
+int check_if_folder_type(char* name);
 
 #endif

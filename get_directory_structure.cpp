@@ -3,6 +3,7 @@
 #include <string>
 #include <stdlib.h>
 #include <cstring>
+#include <vector>
 
 
 using namespace std;
@@ -46,8 +47,11 @@ extern "C" Directory* get_directory_structure(char* name){
     }
     auto status = fs::status(path);
     if(status.type()==fs::file_type(2)){
-        dir->base = (char*)calloc(strlen(path.string().c_str())+1, sizeof(char));   
+        dir->base = (char*)calloc(strlen(path.string().c_str())+3, sizeof(char));   
         strcpy(dir->base, path.string().c_str());
+        if (dir->base[strlen(dir->base)-1]!='\\' && dir->base[strlen(dir->base)-1]!='/')
+            dir->base[strlen(dir->base)]=fs::path().preferred_separator;
+            dir->base[strlen(dir->base)+1]='\0';
         for (auto &p: fs::recursive_directory_iterator(path)){
             if(fs::status(p.path()).type()==fs::file_type(2)){
                 continue;
@@ -70,6 +74,10 @@ extern "C" void destruct_dir(Directory* dir){
     }
     free(dir->files);
     free(dir);
+}
+
+extern "C" int check_if_folder_type(char* name){
+    return int(fs::exists(name) && fs::status(name).type()==fs::file_type(2));
 }
 
 #ifdef STANDALONE
