@@ -13,9 +13,9 @@ typedef struct node Node;
 //generates code for all symbols in tree, memorizing symbol_codes not only for letters, but for non-leaf nodes too
 int codes_generator(Node* root, unsigned char *codes[256], int *codes_length){
     Stack* stack = create_stack();
-    push(stack, root->left);
-    push(stack, root->right);
-    while (!is_empty(stack)){
+    stack_push(stack, root->left);
+    stack_push(stack, root->right);
+    while (!stack_is_empty(stack)){
         root = pop(stack);
         find_symbol_code(root);
         if (root->is_letter){
@@ -23,13 +23,13 @@ int codes_generator(Node* root, unsigned char *codes[256], int *codes_length){
             codes_length[root->letter]=root->depth;
             continue;
         }
-        push(stack, root->left);
-        push(stack, root->right);
+        stack_push(stack, root->left);
+        stack_push(stack, root->right);
     }
     stack_destructor(stack);
 }
 
-int haffman_archivate(FILE *in, FILE* out){
+unsigned int haffman_archivate(FILE *in, FILE* out){
     Node* haffman_prefix_codes_tree = haffman_tree_builder(in);
     unsigned char *packed_tree = calloc(1024, sizeof(unsigned char));
     int packed_tree_length = 0, buffer_length = 1024;
@@ -111,7 +111,7 @@ int archivate(char* archivating_file_name, char* archived_file_name){
         strncpy(structure_buffer+current_carriage_pos+4, dir->files[i]+base_path_length, filename_length);
         current_carriage_pos += 4 + filename_length;
         FILE *archivating_file = fopen(dir->files[i], "rb");
-        int compressed_file_size = haffman_archivate(archivating_file, out_file);
+        unsigned int compressed_file_size = haffman_archivate(archivating_file, out_file);
         fclose(archivating_file);
         structure_buffer[current_carriage_pos] = (unsigned char)255 & (compressed_file_size>>24); 
         structure_buffer[current_carriage_pos+1] = (unsigned char)255 & compressed_file_size>>16;
