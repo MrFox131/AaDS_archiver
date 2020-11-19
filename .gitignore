@@ -3,11 +3,10 @@
 /.vscode
 /*.exe
 /main.c
-/check_file_existance.dll
 /check_file_existance.o
 /output_test
 /test.exe
-/libget_directory_structure.dll
+/*.dll
 /*.out
 /get_directory_structure.o
 /*.o
