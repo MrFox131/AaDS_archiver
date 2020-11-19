@@ -32,14 +32,14 @@ T pop(Stack* stack){
     return stack->data[stack->top];
 }
 
-void push(Stack* stack, T elem) {
+void stack_push(Stack* stack, T elem) {
     if(stack->top==stack->size)
         resize_stack(stack);
     stack->data[stack->top] = elem;
     stack->top++;
 }
 
-int is_empty(Stack* stack){
+int stack_is_empty(Stack* stack){
     if(stack->top==0){
         return 1;
     }

@@ -9,7 +9,7 @@ typedef struct Stack {
     T *data;
     size_t size;
     size_t top;
-}Stack;
+} Stack;
 
 Stack* create_stack();
 
@@ -17,9 +17,9 @@ void resize_stack(Stack* stack);
 
 T pop(Stack* stack);
 
-void push(Stack* stack, T elem);
+void stack_push(Stack* stack, T elem);
 
-int is_empty(Stack* stack);
+int stack_is_empty(Stack* stack);
 
 int stack_destructor(Stack* stack);
 
