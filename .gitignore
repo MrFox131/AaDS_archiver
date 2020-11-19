@@ -10,3 +10,4 @@
 /*.out
 /get_directory_structure.o
 /*.o
+/bin/**

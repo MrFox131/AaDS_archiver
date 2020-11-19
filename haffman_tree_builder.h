@@ -11,7 +11,7 @@ typedef struct node
     char *symbol_code, depth;
 } Node;
 
-Node* haffman_tree_builder(FILE *in);
+Node *haffman_tree_builder(FILE *in);
 void find_symbol_code(Node *root);
 
 #endif
