@@ -68,7 +68,7 @@ Archive_structure* get_archive_structure(FILE *in){
     }
     fseek(in, -structure_buffer_reading_offest, SEEK_END);
     
-    Archive_structure* archive_structure = malloc(sizeof(archive_structure));
+    Archive_structure* archive_structure = malloc(sizeof(Archive_structure));
     archive_structure -> files = calloc(ARCHIVE_STRUCTURE_BUFFER_MULTIPLIER, sizeof(File));
     archive_structure -> files_counter = 0;
     archive_structure->buffer_length=ARCHIVE_STRUCTURE_BUFFER_MULTIPLIER;

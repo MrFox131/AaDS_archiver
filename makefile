@@ -1,6 +1,6 @@
 .PHONY: all
 
-all: libcreate_parent_dirs.dll libcheck_directory_properties.dll libget_directory_structure.dll main.c haffman_tree_builder.o haffman_tree_packer.o stack.o pack.o unpack.o haffman_tree_restorer.o archiver.o unarchiver.c
+all: libcreate_parent_dirs.dll libcheck_directory_properties.dll libget_directory_structure.dll main.c haffman_tree_builder.o haffman_tree_packer.o stack.o pack.o unpack.o haffman_tree_restorer.o archiver.o unarchiver.o
 	gcc -L./ -lget_directory_structure -lcheck_directory_properties -llibcreate_parent_dirs -g ./unarchiver.o ./haffman_tree_restorer.o ./haffman_tree_builder.o ./archiver.o ./haffman_tree_packer.o ./stack.o ./pack.o ./unpack.o ./main.c -o ./main.exe -D _DEBUG
 
 archiver.o: archiver.c 
