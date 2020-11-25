@@ -12,4 +12,5 @@ int codes_generator(Node *root, unsigned char *codes[256], int *codes_length);
 int haffman_archivate(FILE *in, FILE *out, char extended_pipeline);
 int archivate(char *name, char *awrchived_file_path, char extended_pipeline);
 int RLE(char **buffer, int buffer_length);
+int RLE_restoration(unsigned char **buffer, int buffer_length);
 #endif
