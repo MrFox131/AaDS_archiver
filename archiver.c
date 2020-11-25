@@ -373,19 +373,22 @@ int RLE_restoration(unsigned char **buffer, int buffer_length)
             {
                 (*Restored_buffer)[Restored_buffer_carriage_position + i] = (*buffer)[buffer_carriage_position + 1];
             }
-            buffer_carriage_position+=2;
-            Restored_buffer_carriage_position+=duplicating_sequence_length;
-        } else {
-            int not_duplicating_sequence_length = ((*buffer)[buffer_carriage_position]>>1)+1;
+            buffer_carriage_position += 2;
+            Restored_buffer_carriage_position += duplicating_sequence_length;
+        }
+        else
+        {
+            int not_duplicating_sequence_length = ((*buffer)[buffer_carriage_position] >> 1) + 1;
             if (Restored_buffer_length - Restored_buffer_carriage_position < not_duplicating_sequence_length)
             {
                 *Restored_buffer = realloc(*Restored_buffer, Restored_buffer_length + ARCHIVATING_BUFFER_MULTIPLIER);
                 Restored_buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
             }
-            for(int i=0; i< not_duplicating_sequence_length; i++){
-                (*Restored_buffer)[Restored_buffer_carriage_position+i] = (*buffer)[buffer_carriage_position+1+i];
+            for (int i = 0; i < not_duplicating_sequence_length; i++)
+            {
+                (*Restored_buffer)[Restored_buffer_carriage_position + i] = (*buffer)[buffer_carriage_position + 1 + i];
             }
-            buffer_carriage_position+=not_duplicating_sequence_length+1;
+            buffer_carriage_position += not_duplicating_sequence_length + 1;
             Restored_buffer_carriage_position += not_duplicating_sequence_length;
         }
     }
