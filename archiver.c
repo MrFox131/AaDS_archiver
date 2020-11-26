@@ -41,7 +41,7 @@ int codes_generator(Node *root, unsigned char *codes[256], int *codes_length)
     stack_destructor(stack);
 }
 
-int RLE(char **buffer, int buffer_length);
+int RLE(unsigned char **buffer, int buffer_length);
 
 int LZ78(char **buffer, int buffer_length)
 {
@@ -225,7 +225,7 @@ int archivate(char *archivating_file_name, char *archived_file_name, char extend
     return 0;
 }
 
-int RLE(char **buffer, int buffer_length)
+int RLE(unsigned char **buffer, int buffer_length)
 {
     unsigned char **RLE_buffer;
     RLE_buffer = malloc(sizeof(char *));

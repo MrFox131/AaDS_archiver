@@ -3,8 +3,8 @@ vpath %.dll ./bin/
 
 .PHONY: all
 
-all: libcreate_parent_dirs.dll libcheck_directory_properties.dll libget_directory_structure.dll main.c haffman_tree_builder.o haffman_tree_packer.o stack.o pack.o unpack.o haffman_tree_restorer.o archiver.o unarchiver.o
-	gcc -B ./bin/ -L./bin/ -lget_directory_structure -lcheck_directory_properties -llibcreate_parent_dirs -g ./bin/unarchiver.o ./bin/haffman_tree_restorer.o ./bin/haffman_tree_builder.o ./bin/archiver.o ./bin/haffman_tree_packer.o ./bin/stack.o ./bin/pack.o ./bin/unpack.o main.c -o ./bin/main.exe -D _DEBUG
+all: libcreate_parent_dirs.dll libcheck_directory_properties.dll libget_directory_structure.dll main.c haffman_tree_builder.o haffman_tree_packer.o stack.o pack.o unpack.o haffman_tree_restorer.o archiver.c unarchiver.o
+	gcc -B ./bin/ -L./bin/ -lget_directory_structure -lcheck_directory_properties -llibcreate_parent_dirs -g ./unarchiver.c ./bin/haffman_tree_restorer.o ./bin/haffman_tree_builder.o ./archiver.c ./bin/haffman_tree_packer.o ./bin/stack.o ./bin/pack.o ./bin/unpack.o main.c -o ./bin/main.exe -D _DEBUG
 
 archiver.o: archiver.c 
 	gcc -L./ -lget_directory_structure -c archiver.c  -o ./bin/archiver.o
