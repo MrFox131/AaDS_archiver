@@ -41,14 +41,10 @@ int codes_generator(Node *root, unsigned char *codes[256], int *codes_length)
     stack_destructor(stack);
 }
 
-int RLE(unsigned char **buffer, int buffer_length);
+int RLE(FILE *in, FILE *out);
+int LZ78(unsigned char **buffer, int buffer_length);
 
-int LZ78(char **buffer, int buffer_length)
-{
-    return 0;
-}
-
-unsigned int haffman_archivate(FILE *in, FILE *out, char extended_pipeline)
+unsigned int haffman_archivate(FILE *in, FILE *out)
 {
     Node *zero_node;
     Node *haffman_prefix_codes_tree = haffman_tree_builder(in, &zero_node);
@@ -64,110 +60,44 @@ unsigned int haffman_archivate(FILE *in, FILE *out, char extended_pipeline)
     fseek(in, 0, SEEK_SET);
 
     codes_generator(haffman_prefix_codes_tree, symbol_codes, codes_length);
-    if (!extended_pipeline)
+    for (int i = 0; i < packed_tree_length; i++)
     {
-        for (int i = 0; i < packed_tree_length; i++)
-        {
-            fputc(packed_tree[i], out);
-        }
-
-        while (ftell(in) != end)
-        {
-            coding_symbol_buffer = fgetc(in);
-            for (int i = 0; i < codes_length[coding_symbol_buffer]; i++)
-            {
-                if (filled_by == 8)
-                {
-                    filled_by = 0;
-                    fputc(coded_sequence_buffer, out);
-                    coded_sequence_buffer = 0;
-                    cnt++;
-                }
-                coded_sequence_buffer = coded_sequence_buffer << 1;
-                coded_sequence_buffer = coded_sequence_buffer | (symbol_codes[coding_symbol_buffer][i] >> 1);
-                filled_by++;
-            }
-        }
-
-        if (filled_by != 0)
-        {
-            fputc(coded_sequence_buffer, out);
-            cnt++;
-        }
-        fputc(filled_by == 0 ? 8 : filled_by, out);
-        cnt++;
-
-        free(packed_tree);
-        free(zero_node);
-        free(codes_length);
-        return packed_tree_length + cnt;
+        fputc(packed_tree[i], out);
     }
-    else
+
+    while (ftell(in) != end)
     {
-        char *buffer = (char *)calloc(ARCHIVATING_BUFFER_MULTIPLIER, sizeof(char));
-        int buffer_length = ARCHIVATING_BUFFER_MULTIPLIER;
-        int current_carriage_position = 0;
-        while (buffer_length < packed_tree_length)
+        coding_symbol_buffer = fgetc(in);
+        for (int i = 0; i < codes_length[coding_symbol_buffer]; i++)
         {
-            buffer = realloc(buffer, (buffer_length + ARCHIVATING_BUFFER_MULTIPLIER) * sizeof(char));
-            buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
-        }
-        for (int i = 0; i < packed_tree_length; i++)
-        {
-            buffer[current_carriage_position] = packed_tree[i];
-            current_carriage_position++;
-        }
-
-        while (ftell(in) != end)
-        {
-            coding_symbol_buffer = fgetc(in);
-            for (int i = 0; i < codes_length[coding_symbol_buffer]; i++)
+            if (filled_by == 8)
             {
-                if (filled_by == 8)
-                {
-                    if (current_carriage_position == buffer_length)
-                    {
-                        buffer = realloc(buffer, (buffer_length + ARCHIVATING_BUFFER_MULTIPLIER) * sizeof(char));
-                        buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
-                    }
-                    filled_by = 0;
-                    buffer[current_carriage_position] = coded_sequence_buffer;
-                    current_carriage_position++;
-                    coded_sequence_buffer = 0;
-                    cnt++;
-                }
-                coded_sequence_buffer = coded_sequence_buffer << 1;
-                coded_sequence_buffer = coded_sequence_buffer | (symbol_codes[coding_symbol_buffer][i] >> 1);
-                filled_by++;
+                filled_by = 0;
+                fputc(coded_sequence_buffer, out);
+                coded_sequence_buffer = 0;
+                cnt++;
             }
+            coded_sequence_buffer = coded_sequence_buffer << 1;
+            coded_sequence_buffer = coded_sequence_buffer | (symbol_codes[coding_symbol_buffer][i] >> 1);
+            filled_by++;
         }
-        if (filled_by != 0)
-        {
-            buffer[current_carriage_position] = coded_sequence_buffer;
-            cnt++;
-            current_carriage_position++;
-            if (current_carriage_position == buffer_length)
-            {
-                buffer = realloc(buffer, (buffer_length + ARCHIVATING_BUFFER_MULTIPLIER) * sizeof(char));
-                buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
-            }
-        }
-        buffer[current_carriage_position] = filled_by == 0 ? 8 : filled_by;
-        cnt++;
-        current_carriage_position++;
-        buffer = realloc(buffer, current_carriage_position * sizeof(char));
-        buffer_length = current_carriage_position;
-        buffer_length = RLE(&buffer, buffer_length);
-        buffer_length = LZ78(&buffer, buffer_length);
-        for (int i = 0; i < buffer_length; i++)
-        {
-            putc(buffer[i], out);
-        }
-        return buffer_length;
     }
+
+    if (filled_by != 0)
+    {
+        fputc(coded_sequence_buffer, out);
+        cnt++;
+    }
+    fputc(filled_by == 0 ? 8 : filled_by, out);
+    cnt++;
+
+    free(packed_tree);
+    free(zero_node);
+    free(codes_length);
+    return packed_tree_length + cnt;
 }
 
-int archivate(char *archivating_file_name, char *archived_file_name, char extended_pipeline)
+int archivate(char *archivating_file_name, char *archived_file_name, unsigned char archivating_function)
 {
 
     char *cleared_path = calloc(strlen(archivating_file_name) + 1, sizeof(char));
@@ -178,14 +108,14 @@ int archivate(char *archivating_file_name, char *archived_file_name, char extend
 
     unsigned char *structure_buffer = calloc(STRUCTURE_BUFFER_MULTIPLIER, sizeof(char));
     int structure_buffer_size = STRUCTURE_BUFFER_MULTIPLIER;
-    unsigned int current_carriage_pos = 0;
+    unsigned int current_carriage_pos = 1;
     int base_path_length = strlen(dir->base);
     FILE *out_file = fopen(archived_file_name, "wb");
     if (out_file == NULL)
     {
         return -1;
     }
-
+    structure_buffer[0] = archivating_function;
     for (int i = 0; i < dir->files_count; i++)
     {
         unsigned int filename_length = strlen(dir->files[i]) - base_path_length;
@@ -199,12 +129,17 @@ int archivate(char *archivating_file_name, char *archived_file_name, char extend
         strncpy(structure_buffer + current_carriage_pos + 4, dir->files[i] + base_path_length, filename_length);
         current_carriage_pos += 4 + filename_length;
         FILE *archivating_file = fopen(dir->files[i], "rb");
-        unsigned int compressed_file_size = haffman_archivate(archivating_file, out_file, extended_pipeline);
+        unsigned int compressed_file_size;
+        if(archivating_function==1){
+            compressed_file_size = haffman_archivate(archivating_file, out_file);
+        } else {
+            compressed_file_size = RLE(archivating_file, out_file);
+        }
         fclose(archivating_file);
         add_uinteger_to_buffer(compressed_file_size, &structure_buffer, current_carriage_pos);
 
-        structure_buffer[current_carriage_pos + 4] = 1;
-        current_carriage_pos += 5;
+        // structure_buffer[current_carriage_pos + 4] = archivating_function;
+        current_carriage_pos += 4;
     }
     if (structure_buffer_size - current_carriage_pos < 4)
     {
@@ -225,34 +160,32 @@ int archivate(char *archivating_file_name, char *archived_file_name, char extend
     return 0;
 }
 
-int RLE(unsigned char **buffer, int buffer_length)
+int RLE(FILE *in, FILE *out)
 {
-    unsigned char **RLE_buffer;
-    RLE_buffer = malloc(sizeof(char *));
-    *RLE_buffer = calloc(ARCHIVATING_BUFFER_MULTIPLIER, sizeof(char));
-    int RLE_buffer_length = ARCHIVATING_BUFFER_MULTIPLIER;
-    unsigned char last_character = (*buffer)[0];
+    unsigned char last_character = getc(in);
     unsigned char not_duplicating_symbols_counter = 0, duplicating_symbols_counter = 0;
     int current_carriage_position = 0;
-    for (int i = 1; i < buffer_length; i++)
+    fseek(in, 0, SEEK_END);
+    int end = ftell(in);
+    fseek(in, 1, SEEK_SET);
+    unsigned char temporary;
+    while (ftell(in) != end)
     {
-
-        if ((*buffer)[i] == last_character)
+        temporary = getc(in);
+        if (temporary == last_character)
         {
             if (not_duplicating_symbols_counter > 1)
             {
-
-                if (RLE_buffer_length - current_carriage_position < not_duplicating_symbols_counter)
-                {
-                    *RLE_buffer = realloc(RLE_buffer, sizeof(char) * (RLE_buffer_length + ARCHIVATING_BUFFER_MULTIPLIER));
-                    RLE_buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
-                }
-                (*RLE_buffer)[current_carriage_position++] = ((not_duplicating_symbols_counter - 2) << 1) + 1;
+                putc(((not_duplicating_symbols_counter - 2) << 1) + 1, out);
+                fseek(in, -not_duplicating_symbols_counter - 1, SEEK_CUR);
                 for (int j = 0; j < not_duplicating_symbols_counter - 1; j++)
                 {
-                    (*RLE_buffer)[j + current_carriage_position] = (*buffer)[i - not_duplicating_symbols_counter + j];
+                    unsigned char hmm = getc(in);
+                    putc(hmm, out);
                 }
-                current_carriage_position += not_duplicating_symbols_counter - 1;
+                getc(in);
+                getc(in);
+                current_carriage_position += not_duplicating_symbols_counter;
             }
             not_duplicating_symbols_counter = 0;
             if (duplicating_symbols_counter < 129)
@@ -262,18 +195,12 @@ int RLE(unsigned char **buffer, int buffer_length)
                     duplicating_symbols_counter = 1;
                 }
                 duplicating_symbols_counter++;
-                continue;
             }
             else
             {
                 duplicating_symbols_counter = 0;
-                if (RLE_buffer_length - current_carriage_position < 2)
-                {
-                    *RLE_buffer = realloc(RLE_buffer, sizeof(char) * (RLE_buffer_length + ARCHIVATING_BUFFER_MULTIPLIER));
-                    RLE_buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
-                }
-                (*RLE_buffer)[current_carriage_position] = 127 << 1;
-                (*RLE_buffer)[current_carriage_position + 1] = last_character;
+                putc(127 << 1, out);
+                putc(last_character, out);
                 current_carriage_position += 2;
             }
         }
@@ -281,15 +208,10 @@ int RLE(unsigned char **buffer, int buffer_length)
         {
             if (duplicating_symbols_counter != 0)
             {
-                if (RLE_buffer_length - current_carriage_position < 2)
-                {
-                    *RLE_buffer = realloc(RLE_buffer, sizeof(char) * (RLE_buffer_length + ARCHIVATING_BUFFER_MULTIPLIER));
-                    RLE_buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
-                }
-                (*RLE_buffer)[current_carriage_position] = (duplicating_symbols_counter - 2) << 1;
+                putc((duplicating_symbols_counter - 2) << 1, out);
                 duplicating_symbols_counter = 0;
-                (*RLE_buffer)[current_carriage_position + 1] = last_character;
-                last_character = (*buffer)[i];
+                putc(last_character, out);
+                last_character = temporary;
                 not_duplicating_symbols_counter = 1;
                 current_carriage_position += 2;
             }
@@ -302,18 +224,20 @@ int RLE(unsigned char **buffer, int buffer_length)
                         not_duplicating_symbols_counter++;
                     }
                     not_duplicating_symbols_counter++;
-                    last_character = (*buffer)[i];
+                    last_character = temporary;
                 }
                 else
                 {
-                    (*RLE_buffer)[current_carriage_position++] = (127 << 1) + 1;
+                    putc((127 << 1) + 1, out);
+                    fseek(in, -129, SEEK_CUR);
                     for (int j = 0; j < not_duplicating_symbols_counter; j++)
                     {
-                        (*RLE_buffer)[j + current_carriage_position] = (*buffer)[i - not_duplicating_symbols_counter + j];
+                        putc(getc(in), out);
                     }
-                    current_carriage_position += 128;
-                    last_character = (*buffer)[i];
-                    not_duplicating_symbols_counter = 0;
+                    getc(in);
+                    current_carriage_position += 129;
+                    last_character = temporary;
+                    not_duplicating_symbols_counter = 1;
                 }
             }
         }
@@ -321,79 +245,142 @@ int RLE(unsigned char **buffer, int buffer_length)
 
     if (not_duplicating_symbols_counter != 0)
     {
-        if (RLE_buffer_length - current_carriage_position < not_duplicating_symbols_counter)
-        {
-            *RLE_buffer = realloc(RLE_buffer, sizeof(char) * (RLE_buffer_length + ARCHIVATING_BUFFER_MULTIPLIER));
-            RLE_buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
-        }
-        (*RLE_buffer)[current_carriage_position++] = ((not_duplicating_symbols_counter - 1) << 1) + 1;
+
+        putc(((not_duplicating_symbols_counter - 1) << 1) + 1, out);
+        fseek(in, -not_duplicating_symbols_counter, SEEK_CUR);
         for (int j = 0; j < not_duplicating_symbols_counter; j++)
         {
-            (*RLE_buffer)[j + current_carriage_position] = (*buffer)[buffer_length - not_duplicating_symbols_counter + j];
+            putc(getc(in), out);
         }
-        current_carriage_position += not_duplicating_symbols_counter;
+        current_carriage_position += not_duplicating_symbols_counter + 1;
     }
     else if (duplicating_symbols_counter != 0)
     {
-        if (RLE_buffer_length - current_carriage_position < 2)
-        {
-            *RLE_buffer = realloc(RLE_buffer, sizeof(char) * (RLE_buffer_length + ARCHIVATING_BUFFER_MULTIPLIER));
-            RLE_buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
-        }
-        (*RLE_buffer)[current_carriage_position] = (duplicating_symbols_counter - 1) << 1;
+
+        putc((duplicating_symbols_counter - 2) << 1, out);
         duplicating_symbols_counter = 0;
-        (*RLE_buffer)[current_carriage_position + 1] = last_character;
+        putc(last_character, out);
         not_duplicating_symbols_counter = 1;
         current_carriage_position += 2;
     }
-    free(*buffer);
-    *buffer = *RLE_buffer;
-    free(RLE_buffer);
     return current_carriage_position;
 }
 
-int RLE_restoration(unsigned char **buffer, int buffer_length)
-{
-    unsigned char **Restored_buffer = malloc(sizeof(char *));
-    *Restored_buffer = calloc(ARCHIVATING_BUFFER_MULTIPLIER, sizeof(char));
-    int Restored_buffer_length = ARCHIVATING_BUFFER_MULTIPLIER;
-    int buffer_carriage_position = 0;
-    int Restored_buffer_carriage_position = 0;
-    while (buffer_carriage_position < buffer_length)
-    {
-        if ((*buffer)[buffer_carriage_position] % 2 == 0)
-        {
-            int duplicating_sequence_length = ((*buffer)[buffer_carriage_position] >> 1) + 2;
-            if (Restored_buffer_length - Restored_buffer_carriage_position < duplicating_sequence_length)
-            {
-                *Restored_buffer = realloc(*Restored_buffer, Restored_buffer_length + ARCHIVATING_BUFFER_MULTIPLIER);
-                Restored_buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
-            }
-            for (int i = 0; i < duplicating_sequence_length; i++)
-            {
-                (*Restored_buffer)[Restored_buffer_carriage_position + i] = (*buffer)[buffer_carriage_position + 1];
-            }
-            buffer_carriage_position += 2;
-            Restored_buffer_carriage_position += duplicating_sequence_length;
-        }
-        else
-        {
-            int not_duplicating_sequence_length = ((*buffer)[buffer_carriage_position] >> 1) + 1;
-            if (Restored_buffer_length - Restored_buffer_carriage_position < not_duplicating_sequence_length)
-            {
-                *Restored_buffer = realloc(*Restored_buffer, Restored_buffer_length + ARCHIVATING_BUFFER_MULTIPLIER);
-                Restored_buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
-            }
-            for (int i = 0; i < not_duplicating_sequence_length; i++)
-            {
-                (*Restored_buffer)[Restored_buffer_carriage_position + i] = (*buffer)[buffer_carriage_position + 1 + i];
-            }
-            buffer_carriage_position += not_duplicating_sequence_length + 1;
-            Restored_buffer_carriage_position += not_duplicating_sequence_length;
-        }
-    }
-    free(*buffer);
-    *buffer = *Restored_buffer;
-    free(Restored_buffer);
-    return Restored_buffer_carriage_position;
-}
+// typedef struct word
+// {
+//     unsigned int index;
+//     unsigned char symbol;
+// } Word;
+
+// int LZ78(unsigned char **buffer, int buffer_length)
+// {
+//     unsigned char **LZ78_buffer = malloc(sizeof(char *));
+//     *LZ78_buffer = calloc(ARCHIVATING_BUFFER_MULTIPLIER, sizeof(char));
+//     int current_carriage_position = 0;
+//     int LZ78_buffer_length = ARCHIVATING_BUFFER_MULTIPLIER;
+//     Word *dictionary = (Word *)calloc(200000, sizeof(Word));
+//     int count_of_prefixes = 0;
+//     int current_prefix = 0;
+//     for (int i = 0; i < buffer_length; i++)
+//     {
+//         if (i % 10000 == 0)
+//             printf("%d|||%d\n", i, count_of_prefixes);
+//         int j = 0;
+//         for (; j < count_of_prefixes; j++)
+//         {
+//             if (current_prefix == dictionary[j].index && (*buffer)[i] == dictionary[j].symbol)
+//             {
+//                 break;
+//             }
+//         }
+//         if (j == count_of_prefixes)
+//         {
+//             if (count_of_prefixes < 50000)
+//             {
+//                 dictionary[count_of_prefixes].index = current_prefix;
+//                 dictionary[count_of_prefixes].symbol = (*buffer)[i];
+//                 //current_prefix = 0;
+//                 count_of_prefixes++;
+//             }
+//             if (LZ78_buffer_length - current_carriage_position < 5)
+//             {
+//                 *LZ78_buffer = realloc(*LZ78_buffer, LZ78_buffer_length + ARCHIVATING_BUFFER_MULTIPLIER);
+//                 LZ78_buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
+//             }
+//             add_uinteger_to_buffer(current_prefix, LZ78_buffer, current_carriage_position);
+//             current_carriage_position += 4;
+//             (*LZ78_buffer)[current_carriage_position++] = (*buffer)[i];
+//             current_prefix = 0;
+//         }
+//         else
+//         {
+//             current_prefix = j + 1;
+//         }
+//     }
+//     if (current_prefix != 0)
+//     {
+//         if (count_of_prefixes < 50000)
+//         {
+//             dictionary[count_of_prefixes].index = current_prefix;
+//             dictionary[count_of_prefixes].symbol = '\0';
+//             current_prefix = 0;
+//             count_of_prefixes++;
+//         }
+//         if (LZ78_buffer_length - current_carriage_position < 5)
+//         {
+//             *LZ78_buffer = realloc(*LZ78_buffer, LZ78_buffer_length + ARCHIVATING_BUFFER_MULTIPLIER);
+//             LZ78_buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
+//         }
+//         add_uinteger_to_buffer(current_prefix, LZ78_buffer, current_carriage_position);
+//         current_carriage_position += 4;
+//         (*LZ78_buffer)[current_carriage_position++] = '\0';
+//     }
+//     free(*buffer);
+//     *buffer = *LZ78_buffer;
+//     free(LZ78_buffer);
+//     free(dictionary);
+//     return current_carriage_position;
+// }
+
+// int LZ78_restoration(unsigned char **buffer, int buffer_length)
+// {
+//     char **dictionary = (char **)calloc(200001, sizeof(char *));
+//     dictionary[0] = malloc(sizeof(char));
+//     dictionary[0][0] = '\0';
+//     unsigned char **Restored_buffer = malloc(sizeof(char *));
+//     *Restored_buffer = calloc(ARCHIVATING_BUFFER_MULTIPLIER, sizeof(char));
+//     int Restored_buffer_size = ARCHIVATING_BUFFER_MULTIPLIER;
+//     int Restored_buffer_pos = 0;
+//     int prefixes_count = 1;
+//     int current_carriage_position = 0;
+//     while (current_carriage_position < buffer_length)
+//     {
+//         unsigned int temporary = 0;
+//         temporary = ((temporary >> 24) | (*buffer)[current_carriage_position]) << 24;
+//         temporary = ((temporary >> 16) | (*buffer)[current_carriage_position + 1]) << 16;
+//         temporary = ((temporary >> 8) | (*buffer)[current_carriage_position + 2]) << 8;
+//         temporary = ((temporary) | (*buffer)[current_carriage_position + 3]);
+//         if (prefixes_count < 50001)
+//         {
+//             int prev_len = strlen(dictionary[temporary]);
+//             dictionary[prefixes_count] = calloc(prev_len + 2, sizeof(char));
+//             strcpy(dictionary[prefixes_count], dictionary[temporary]);
+//             dictionary[prefixes_count][prev_len] = (*buffer)[current_carriage_position + 4];
+//             dictionary[prefixes_count][prev_len + 1] = '\0';
+//             prefixes_count++;
+//         }
+//         while (Restored_buffer_size - Restored_buffer_pos < strlen(dictionary[temporary]) + 1)
+//         {
+//             (*Restored_buffer) = realloc(*Restored_buffer, Restored_buffer_size + ARCHIVATING_BUFFER_MULTIPLIER);
+//             Restored_buffer_size += ARCHIVATING_BUFFER_MULTIPLIER;
+//         }
+//         memcpy((*Restored_buffer) + Restored_buffer_pos, dictionary[temporary], strlen(dictionary[temporary]));
+//         (*Restored_buffer)[Restored_buffer_pos + strlen(dictionary[temporary])] = (*buffer)[current_carriage_position + 4];
+//         Restored_buffer_pos += strlen(dictionary[temporary]) + 1;
+//         current_carriage_position += 5;
+//     }
+//     free(*buffer);
+//     *buffer = *Restored_buffer;
+//     free(Restored_buffer);
+//     return Restored_buffer_pos;
+// }

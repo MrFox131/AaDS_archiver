@@ -20,6 +20,7 @@ typedef struct archive_structure
     File *files;
     int buffer_length;
     int files_counter;
+    int archivating_function; //1- haffman, 2 - rle
 } Archive_structure;
 
 int haffman_unarchivate(FILE *in, FILE *out, unsigned int offset, unsigned int size)
@@ -71,6 +72,8 @@ int haffman_unarchivate(FILE *in, FILE *out, unsigned int offset, unsigned int s
     return 0;
 }
 
+int RLE_restoration(FILE *in, FILE *out, unsigned int offset, unsigned int size);
+
 Archive_structure *get_archive_structure(FILE *in)
 {
     fseek(in, -4, SEEK_END);
@@ -87,6 +90,8 @@ Archive_structure *get_archive_structure(FILE *in)
     archive_structure->files = calloc(ARCHIVE_STRUCTURE_BUFFER_MULTIPLIER, sizeof(File));
     archive_structure->files_counter = 0;
     archive_structure->buffer_length = ARCHIVE_STRUCTURE_BUFFER_MULTIPLIER;
+    archive_structure->archivating_function = getc(in);
+    structure_buffer_reading_offest--;
     int offset = 0;
 
     while (structure_buffer_reading_offest > 4)
@@ -114,8 +119,7 @@ Archive_structure *get_archive_structure(FILE *in)
         }
         archive_structure->files[archive_structure->files_counter].compressed_size = compressed_size;
         offset += compressed_size;
-        archive_structure->files[archive_structure->files_counter].archivating_algo = getc(in);
-        structure_buffer_reading_offest -= filename_length + 9;
+        structure_buffer_reading_offest -= filename_length + 8;
         archive_structure->files_counter++;
     }
     archive_structure->files = realloc(archive_structure->files, archive_structure->files_counter * sizeof(File));
@@ -140,13 +144,22 @@ int unarchivate(FILE *in, char *output_path)
         path[base_path_length + 1] = '\0';
         base_path_length += 1;
     }
+    int (*function)(FILE *, FILE *, unsigned int, unsigned int);
+    if (archive_structure->archivating_function == 1)
+    {
+        function = haffman_unarchivate;
+    }
+    else
+    {
+        function = RLE_restoration;
+    }
     for (int i = 0; i < archive_structure->files_counter; i++)
     {
         path = realloc(path, base_path_length + strlen(archive_structure->files[i].name) + 1);
         create_parent_dirs(path);
         strcpy(path + base_path_length, archive_structure->files[i].name);
         FILE *out = fopen(path, "wb");
-        haffman_unarchivate(in, out, archive_structure->files[i].offset, archive_structure->files[i].compressed_size);
+        function(in, out, archive_structure->files[i].offset, archive_structure->files[i].compressed_size);
 
         fclose(out);
         free(archive_structure->files[i].name);
@@ -155,5 +168,35 @@ int unarchivate(FILE *in, char *output_path)
     free(archive_structure);
     free(path);
 
+    return 0;
+}
+
+int RLE_restoration(FILE *in, FILE *out, unsigned int offset, unsigned int size)
+{
+    unsigned char temporary;
+    fseek(in, offset, SEEK_SET);
+    for (int i = 0; i < size;)
+    {
+        temporary = getc(in);
+        if (temporary % 2 == 0)
+        {
+            int duplicating_sequence_length = (temporary >> 1) + 2;
+            unsigned char temp = getc(in);
+            for (int j = 0; j < duplicating_sequence_length; j++)
+            {
+                putc(temp, out);
+            }
+            i += 2;
+        }
+        else
+        {
+            int not_duplicating_sequence_length = (temporary >> 1) + 1;
+            for (int j = 0; j < not_duplicating_sequence_length; j++)
+            {
+                putc(getc(in), out);
+            }
+            i += not_duplicating_sequence_length + 1;
+        }
+    }
     return 0;
 }
