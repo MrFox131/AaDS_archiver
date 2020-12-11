@@ -52,7 +52,7 @@ unsigned int haffman_archivate(FILE *in, FILE *out)
     int packed_tree_length = 0, buffer_length = 1024;
     haffman_tree_packer(haffman_prefix_codes_tree, &packed_tree_length, &buffer_length, &packed_tree);
 
-    unsigned char *symbol_codes[256], coded_sequence_buffer, coding_symbol_buffer, mask = 255, filled_by = 0;
+    unsigned char *(symbol_codes)[256], coded_sequence_buffer, coding_symbol_buffer, mask = 255, filled_by = 0;
     int *codes_length = calloc(256, sizeof(int)), cnt = 0;
 
     fseek(in, 0, SEEK_END);
@@ -91,8 +91,24 @@ unsigned int haffman_archivate(FILE *in, FILE *out)
     fputc(filled_by == 0 ? 8 : filled_by, out);
     cnt++;
 
+    Node *temp_zero_node = zero_node;
+    Stack *stack = create_stack();
+    stack_push(stack, zero_node->left);
+    stack_push(stack, zero_node->right);
+    while (!stack_is_empty(stack))
+    {
+        zero_node = pop(stack);
+        if (zero_node != NULL)
+        {
+            free(zero_node->symbol_code);
+            stack_push(stack, zero_node->left);
+            stack_push(stack, zero_node->right);
+        }
+    }
+    stack_destructor(stack);
+
     free(packed_tree);
-    free(zero_node);
+    free(temp_zero_node);
     free(codes_length);
     return packed_tree_length + cnt;
 }
@@ -130,9 +146,12 @@ int archivate(char *archivating_file_name, char *archived_file_name, unsigned ch
         current_carriage_pos += 4 + filename_length;
         FILE *archivating_file = fopen(dir->files[i], "rb");
         unsigned int compressed_file_size;
-        if(archivating_function==1){
+        if (archivating_function == 1)
+        {
             compressed_file_size = haffman_archivate(archivating_file, out_file);
-        } else {
+        }
+        else
+        {
             compressed_file_size = RLE(archivating_file, out_file);
         }
         fclose(archivating_file);
@@ -265,122 +284,3 @@ int RLE(FILE *in, FILE *out)
     }
     return current_carriage_position;
 }
-
-// typedef struct word
-// {
-//     unsigned int index;
-//     unsigned char symbol;
-// } Word;
-
-// int LZ78(unsigned char **buffer, int buffer_length)
-// {
-//     unsigned char **LZ78_buffer = malloc(sizeof(char *));
-//     *LZ78_buffer = calloc(ARCHIVATING_BUFFER_MULTIPLIER, sizeof(char));
-//     int current_carriage_position = 0;
-//     int LZ78_buffer_length = ARCHIVATING_BUFFER_MULTIPLIER;
-//     Word *dictionary = (Word *)calloc(200000, sizeof(Word));
-//     int count_of_prefixes = 0;
-//     int current_prefix = 0;
-//     for (int i = 0; i < buffer_length; i++)
-//     {
-//         if (i % 10000 == 0)
-//             printf("%d|||%d\n", i, count_of_prefixes);
-//         int j = 0;
-//         for (; j < count_of_prefixes; j++)
-//         {
-//             if (current_prefix == dictionary[j].index && (*buffer)[i] == dictionary[j].symbol)
-//             {
-//                 break;
-//             }
-//         }
-//         if (j == count_of_prefixes)
-//         {
-//             if (count_of_prefixes < 50000)
-//             {
-//                 dictionary[count_of_prefixes].index = current_prefix;
-//                 dictionary[count_of_prefixes].symbol = (*buffer)[i];
-//                 //current_prefix = 0;
-//                 count_of_prefixes++;
-//             }
-//             if (LZ78_buffer_length - current_carriage_position < 5)
-//             {
-//                 *LZ78_buffer = realloc(*LZ78_buffer, LZ78_buffer_length + ARCHIVATING_BUFFER_MULTIPLIER);
-//                 LZ78_buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
-//             }
-//             add_uinteger_to_buffer(current_prefix, LZ78_buffer, current_carriage_position);
-//             current_carriage_position += 4;
-//             (*LZ78_buffer)[current_carriage_position++] = (*buffer)[i];
-//             current_prefix = 0;
-//         }
-//         else
-//         {
-//             current_prefix = j + 1;
-//         }
-//     }
-//     if (current_prefix != 0)
-//     {
-//         if (count_of_prefixes < 50000)
-//         {
-//             dictionary[count_of_prefixes].index = current_prefix;
-//             dictionary[count_of_prefixes].symbol = '\0';
-//             current_prefix = 0;
-//             count_of_prefixes++;
-//         }
-//         if (LZ78_buffer_length - current_carriage_position < 5)
-//         {
-//             *LZ78_buffer = realloc(*LZ78_buffer, LZ78_buffer_length + ARCHIVATING_BUFFER_MULTIPLIER);
-//             LZ78_buffer_length += ARCHIVATING_BUFFER_MULTIPLIER;
-//         }
-//         add_uinteger_to_buffer(current_prefix, LZ78_buffer, current_carriage_position);
-//         current_carriage_position += 4;
-//         (*LZ78_buffer)[current_carriage_position++] = '\0';
-//     }
-//     free(*buffer);
-//     *buffer = *LZ78_buffer;
-//     free(LZ78_buffer);
-//     free(dictionary);
-//     return current_carriage_position;
-// }
-
-// int LZ78_restoration(unsigned char **buffer, int buffer_length)
-// {
-//     char **dictionary = (char **)calloc(200001, sizeof(char *));
-//     dictionary[0] = malloc(sizeof(char));
-//     dictionary[0][0] = '\0';
-//     unsigned char **Restored_buffer = malloc(sizeof(char *));
-//     *Restored_buffer = calloc(ARCHIVATING_BUFFER_MULTIPLIER, sizeof(char));
-//     int Restored_buffer_size = ARCHIVATING_BUFFER_MULTIPLIER;
-//     int Restored_buffer_pos = 0;
-//     int prefixes_count = 1;
-//     int current_carriage_position = 0;
-//     while (current_carriage_position < buffer_length)
-//     {
-//         unsigned int temporary = 0;
-//         temporary = ((temporary >> 24) | (*buffer)[current_carriage_position]) << 24;
-//         temporary = ((temporary >> 16) | (*buffer)[current_carriage_position + 1]) << 16;
-//         temporary = ((temporary >> 8) | (*buffer)[current_carriage_position + 2]) << 8;
-//         temporary = ((temporary) | (*buffer)[current_carriage_position + 3]);
-//         if (prefixes_count < 50001)
-//         {
-//             int prev_len = strlen(dictionary[temporary]);
-//             dictionary[prefixes_count] = calloc(prev_len + 2, sizeof(char));
-//             strcpy(dictionary[prefixes_count], dictionary[temporary]);
-//             dictionary[prefixes_count][prev_len] = (*buffer)[current_carriage_position + 4];
-//             dictionary[prefixes_count][prev_len + 1] = '\0';
-//             prefixes_count++;
-//         }
-//         while (Restored_buffer_size - Restored_buffer_pos < strlen(dictionary[temporary]) + 1)
-//         {
-//             (*Restored_buffer) = realloc(*Restored_buffer, Restored_buffer_size + ARCHIVATING_BUFFER_MULTIPLIER);
-//             Restored_buffer_size += ARCHIVATING_BUFFER_MULTIPLIER;
-//         }
-//         memcpy((*Restored_buffer) + Restored_buffer_pos, dictionary[temporary], strlen(dictionary[temporary]));
-//         (*Restored_buffer)[Restored_buffer_pos + strlen(dictionary[temporary])] = (*buffer)[current_carriage_position + 4];
-//         Restored_buffer_pos += strlen(dictionary[temporary]) + 1;
-//         current_carriage_position += 5;
-//     }
-//     free(*buffer);
-//     *buffer = *Restored_buffer;
-//     free(Restored_buffer);
-//     return Restored_buffer_pos;
-// }

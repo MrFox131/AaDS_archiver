@@ -68,6 +68,7 @@ int haffman_unarchivate(FILE *in, FILE *out, unsigned int offset, unsigned int s
             curr_node = tree_root;
         }
     }
+    free(tree_root);
     fclose(out);
     return 0;
 }
