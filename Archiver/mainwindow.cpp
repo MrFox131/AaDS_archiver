@@ -58,6 +58,11 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::unarchive_triggered(){
     auto input_archive_name = QFileDialog::getOpenFileName(this, tr("Open File"), "./", "Archives (*.my_archiver_child)").toStdString();
     auto output_folder_name = QFileDialog::getExistingDirectory(this, tr("Save Directory")).toStdString();
+    if(input_archive_name=="" or output_folder_name == ""){
+        QMessageBox messageBox;
+        messageBox.critical(0, "Error", "Один или несколько переданных путей некорректны");
+        return;
+    }
     auto file = fopen(input_archive_name.c_str(), "rb");
     fseek(file, 0, SEEK_END);
     if(ftell(file)==0){
