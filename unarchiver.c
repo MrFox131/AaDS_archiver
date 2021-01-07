@@ -10,7 +10,7 @@
 typedef struct file
 {
     char *name;
-    int offset;
+    unsigned int offset;
     unsigned int compressed_size;
     unsigned char archivating_algo;
 } File;
@@ -25,6 +25,10 @@ typedef struct archive_structure
 
 int haffman_unarchivate(FILE *in, FILE *out, unsigned int offset, unsigned int size)
 {
+    if(size == 0){
+        fclose(out);
+        return 0;
+    }
     fseek(in, offset, SEEK_SET);
     RestoredNode *const tree_root = haffman_tree_restoration(in);
     size -= ftell(in) - offset;
@@ -87,8 +91,8 @@ Archive_structure *get_archive_structure(FILE *in)
     }
     fseek(in, -structure_buffer_reading_offest, SEEK_END);
 
-    Archive_structure *archive_structure = malloc(sizeof(Archive_structure));
-    archive_structure->files = calloc(ARCHIVE_STRUCTURE_BUFFER_MULTIPLIER, sizeof(File));
+    Archive_structure *archive_structure = (Archive_structure*)malloc(sizeof(Archive_structure));
+    archive_structure->files = (File*)calloc(ARCHIVE_STRUCTURE_BUFFER_MULTIPLIER, sizeof(File));
     archive_structure->files_counter = 0;
     archive_structure->buffer_length = ARCHIVE_STRUCTURE_BUFFER_MULTIPLIER;
     archive_structure->archivating_function = getc(in);
@@ -105,10 +109,10 @@ Archive_structure *get_archive_structure(FILE *in)
         }
         if (archive_structure->buffer_length == archive_structure->files_counter)
         {
-            archive_structure->files = realloc(archive_structure->files, (archive_structure->buffer_length + ARCHIVE_STRUCTURE_BUFFER_MULTIPLIER) * sizeof(File));
+            archive_structure->files = (File*)realloc(archive_structure->files, (archive_structure->buffer_length + ARCHIVE_STRUCTURE_BUFFER_MULTIPLIER) * sizeof(File));
             archive_structure->buffer_length += ARCHIVE_STRUCTURE_BUFFER_MULTIPLIER;
         }
-        archive_structure->files[archive_structure->files_counter].name = calloc(filename_length + 1, sizeof(char));
+        archive_structure->files[archive_structure->files_counter].name = (char*)calloc(filename_length + 1, sizeof(char));
         fgets(archive_structure->files[archive_structure->files_counter].name, filename_length + 1, in);
         archive_structure->files[archive_structure->files_counter].offset = offset;
 
@@ -123,12 +127,13 @@ Archive_structure *get_archive_structure(FILE *in)
         structure_buffer_reading_offest -= filename_length + 8;
         archive_structure->files_counter++;
     }
-    archive_structure->files = realloc(archive_structure->files, archive_structure->files_counter * sizeof(File));
+    archive_structure->files = (File*)realloc(archive_structure->files, archive_structure->files_counter * sizeof(File));
     return archive_structure;
 }
 
-int unarchivate(FILE *in, char *output_path)
+int unarchivate(const char *in_file, const char *output_path)
 {
+    FILE *in = fopen(in_file, "rb");
     int smth = check_directory_properties(output_path);
     if (smth)
     {
@@ -136,7 +141,7 @@ int unarchivate(FILE *in, char *output_path)
     }
 
     Archive_structure *archive_structure = get_archive_structure(in);
-    char *path = malloc(strlen(output_path) + 2);
+    char *path = (char*)malloc(strlen(output_path) + 2);
     strcpy(path, output_path);
     int base_path_length = strlen(output_path);
     if (output_path[base_path_length - 1] != '/' && output_path[base_path_length - 1] != '\\')
@@ -156,9 +161,9 @@ int unarchivate(FILE *in, char *output_path)
     }
     for (int i = 0; i < archive_structure->files_counter; i++)
     {
-        path = realloc(path, base_path_length + strlen(archive_structure->files[i].name) + 1);
-        create_parent_dirs(path);
+        path = (char*)realloc(path, base_path_length + strlen(archive_structure->files[i].name) + 1);
         strcpy(path + base_path_length, archive_structure->files[i].name);
+        create_parent_dirs(path);
         FILE *out = fopen(path, "wb");
         function(in, out, archive_structure->files[i].offset, archive_structure->files[i].compressed_size);
 
@@ -168,7 +173,7 @@ int unarchivate(FILE *in, char *output_path)
     free(archive_structure->files);
     free(archive_structure);
     free(path);
-
+    fclose(in);
     return 0;
 }
 

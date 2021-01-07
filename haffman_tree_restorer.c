@@ -13,7 +13,7 @@ RestoredNode *haffman_tree_restoration(FILE *in)
     {
         return NULL;
     }
-    RestoredNode *node = malloc(sizeof(RestoredNode));
+    RestoredNode *node = (RestoredNode*)malloc(sizeof(RestoredNode));
     if (getc(in))
     {
         node->letter = getc(in);

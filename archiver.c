@@ -46,6 +46,11 @@ int LZ78(unsigned char **buffer, int buffer_length);
 
 unsigned int haffman_archivate(FILE *in, FILE *out)
 {
+    fseek(in, 0, SEEK_END);
+    if(ftell(in)==0){
+        return 0;
+    }
+    fseek(in, 0, SEEK_SET);
     Node *zero_node;
     Node *haffman_prefix_codes_tree = haffman_tree_builder(in, &zero_node);
     unsigned char *packed_tree = calloc(1024, sizeof(unsigned char));
@@ -113,7 +118,7 @@ unsigned int haffman_archivate(FILE *in, FILE *out)
     return packed_tree_length + cnt;
 }
 
-int archivate(char *archivating_file_name, char *archived_file_name, unsigned char archivating_function)
+int archivate(const char *archivating_file_name, const char *archived_file_name, unsigned char archivating_function)
 {
 
     char *cleared_path = calloc(strlen(archivating_file_name) + 1, sizeof(char));
@@ -121,7 +126,9 @@ int archivate(char *archivating_file_name, char *archived_file_name, unsigned ch
     if (cleared_path[strlen(cleared_path) - 1] == '\\' || cleared_path[strlen(cleared_path) - 1] == '/')
         cleared_path[strlen(cleared_path) - 1] = '\0';
     Directory *dir = get_directory_structure(cleared_path);
-
+    if (dir==NULL){
+        return -3;
+    }
     unsigned char *structure_buffer = calloc(STRUCTURE_BUFFER_MULTIPLIER, sizeof(char));
     int structure_buffer_size = STRUCTURE_BUFFER_MULTIPLIER;
     unsigned int current_carriage_pos = 1;
@@ -145,6 +152,9 @@ int archivate(char *archivating_file_name, char *archived_file_name, unsigned ch
         strncpy(structure_buffer + current_carriage_pos + 4, dir->files[i] + base_path_length, filename_length);
         current_carriage_pos += 4 + filename_length;
         FILE *archivating_file = fopen(dir->files[i], "rb");
+        if (archivating_file == 0x0){
+            return -2;
+        }
         unsigned int compressed_file_size;
         if (archivating_function == 1)
         {
@@ -181,6 +191,11 @@ int archivate(char *archivating_file_name, char *archived_file_name, unsigned ch
 
 int RLE(FILE *in, FILE *out)
 {
+    fseek(in, 0, SEEK_END);
+    if(ftell(in)==0){
+        return 0;
+    }
+    fseek(in, 0, SEEK_SET);
     unsigned char last_character = getc(in);
     unsigned char not_duplicating_symbols_counter = 0, duplicating_symbols_counter = 0;
     int current_carriage_position = 0;

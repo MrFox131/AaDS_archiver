@@ -9,7 +9,7 @@
 #define ARCHIVER_H
 
 typedef struct node Node;
-int haffman_archivate(FILE *in, FILE *out, char extended_pipeline);
-int archivate(char *name, char *archived_file_path, unsigned char archivating_function);
+int haffman_archivate(FILE *in, FILE *out);
+int archivate(const char *name, const char *archived_file_path, unsigned char archivating_function);
 int RLE(FILE *in, FILE *out);
 #endif

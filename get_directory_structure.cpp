@@ -3,6 +3,7 @@
 #include <string>
 #include <stdlib.h>
 #include <cstring>
+#include <wchar.h>
 
 using namespace std;
 

@@ -8,9 +8,9 @@ using namespace std;
 
 namespace fs = std::filesystem;
 
-bool check_directory_write_permission(char *name);
+bool check_directory_write_permission(const char *name);
 
-extern "C" int check_directory_properties(char *name)
+extern "C" int check_directory_properties(const char *name)
 {
     if (!fs::exists(name))
     {
@@ -18,15 +18,15 @@ extern "C" int check_directory_properties(char *name)
         {
             return -1; //unable to create directory
         }
-        return 0;
     }
     if (!check_directory_write_permission(name))
     {
         return -2; //unable to write to the directory
     }
+    return 0;
 }
 
-bool check_directory_write_permission(char *name)
+bool check_directory_write_permission(const char *name)
 {
     char *name_ = (char *)malloc((strlen(name) + 10) * sizeof(char));
     strcpy(name_, name);
