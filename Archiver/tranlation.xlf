@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:trolltech="urn:trolltech:names:ts:document:1.0">
+  <file original="C:/Users/Fox and Dragon/Documents/Archiver/mainwindow.cpp" datatype="cpp" source-language="en" target-language=""><body>
+    <group restype="x-trolltech-linguist-context" resname="MainWindow">
+      <trans-unit id="_msg1">
+        <source xml:space="preserve">Open File</source>
+        <target xml:space="preserve"></target>
+        <context-group purpose="location"><context context-type="linenumber">35</context></context-group>
+      </trans-unit>
+      <trans-unit id="_msg2">
+        <source xml:space="preserve">Save Directory</source>
+        <target xml:space="preserve"></target>
+        <context-group purpose="location"><context context-type="linenumber">36</context></context-group>
+      </trans-unit>
+    </group>
+  </body></file>
+</xliff>
